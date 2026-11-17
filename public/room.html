@@ -43,6 +43,11 @@
     </div>
   </header>
 
+  <div id="secure-banner" class="secure-banner" hidden>
+    Cámara y micrófono no funcionan por HTTP en otra computadora.
+    Abre <a id="secure-link" href="#"></a> y acepta el aviso del certificado.
+  </div>
+
   <!-- CONTENEDOR PRINCIPAL -->
   <main class="room-main">
     
@@ -86,12 +91,12 @@
 
       <!-- Barra de controles de la llamada estilo Google Meet -->
       <div class="meet-controls">
-        <button id="btn-toggle-mic" class="meet-btn active" title="Activar / Desactivar Micrófono">
+        <button id="btn-toggle-mic" class="meet-btn off" title="Activar / Desactivar Micrófono">
           <svg class="icon-on" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
           <svg class="icon-off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"></path><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
         </button>
 
-        <button id="btn-toggle-cam" class="meet-btn active" title="Activar / Desactivar Cámara">
+        <button id="btn-toggle-cam" class="meet-btn off" title="Activar / Desactivar Cámara">
           <svg class="icon-on" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
           <svg class="icon-off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M21 21l-5-5-2 2-7-7-2-2"></path><path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4"></path><polygon points="23 7 16 12 23 17 23 7"></polygon></svg>
         </button>
@@ -100,6 +105,7 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
         </button>
       </div>
+      <p id="media-status" class="media-status" aria-live="polite">Preparando cámara y micrófono…</p>
     </aside>
 
     <!-- BARRA DE HERRAMIENTAS FLOTANTE DE LA PIZARRA -->

@@ -68,7 +68,7 @@
           <span class="net-icon">📡</span>
           <strong>¿Cómo abrirlo desde otra computadora?</strong>
         </div>
-        <p>Asegúrate de estar en la misma red Wi-Fi y abre en el navegador de la otra computadora la siguiente dirección:</p>
+        <p>En la otra computadora, con el mismo Wi-Fi, abre la dirección segura. La primera vez acepta el aviso del certificado: así funcionan cámara y micrófono.</p>
         <div class="ip-list" id="ip-list">
           <span class="loading-ips">Detectando dirección IP de tu red local...</span>
         </div>
@@ -134,11 +134,14 @@
         ipContainer.innerHTML = '';
         if (data.localIps && data.localIps.length > 0) {
           data.localIps.forEach(net => {
+            const href = data.httpsPort
+              ? `https://${net.address}:${data.httpsPort}`
+              : `http://${net.address}:${data.port}`;
             const row = document.createElement('div');
             row.className = 'ip-row';
             row.innerHTML = `
               <span class="iface-name">${net.interface}:</span>
-              <a href="http://${net.address}:${data.port}" target="_blank" class="ip-url">http://${net.address}:${data.port}</a>
+              <a href="${href}" class="ip-url">${href}</a>
             `;
             ipContainer.appendChild(row);
           });

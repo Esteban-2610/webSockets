@@ -437,6 +437,7 @@
   width: 100%;
   height: 100%;
   cursor: crosshair;
+  touch-action: none;
 }
 
 /* Capa de cursores de otros usuarios */
@@ -499,7 +500,8 @@
 }
 
 .meet-panel.minimized .video-grid,
-.meet-panel.minimized .meet-controls {
+.meet-panel.minimized .meet-controls,
+.meet-panel.minimized .media-status {
   display: none;
 }
 
@@ -567,7 +569,16 @@
 }
 
 .video-tile.local-tile video {
-  transform: scaleX(-1); /* Efecto espejo para el usuario local */
+  transform: scaleX(-1);
+}
+
+.video-tile.speaking {
+  border-color: var(--success);
+  box-shadow: inset 0 0 0 2px var(--success);
+}
+
+.local-tile video.sharing {
+  transform: none;
 }
 
 .video-placeholder {
@@ -674,6 +685,37 @@
 
 .meet-btn.off .icon-off {
   display: block;
+}
+
+.meet-btn.sharing {
+  background: var(--primary);
+}
+
+.meet-btn.sharing:hover {
+  background: var(--primary-hover);
+}
+
+.media-status {
+  margin: 0;
+  padding: 0 12px 10px;
+  color: #bdc1c6;
+  font-size: 11px;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.secure-banner {
+  background: #fef7e0;
+  color: #3c4043;
+  font-size: 13px;
+  line-height: 1.4;
+  padding: 8px 16px;
+  text-align: center;
+}
+
+.secure-banner a {
+  color: var(--primary);
+  font-weight: 600;
 }
 
 /* =========================================

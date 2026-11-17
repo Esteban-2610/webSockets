@@ -80,12 +80,23 @@ document.addEventListener('DOMContentLoaded', () => {
   // 4. CONFIGURAR LA BARRA DE HERRAMIENTAS (TOOLBAR)
   setupToolbarControls(whiteboard);
 
+  window.addEventListener('keydown', (e) => {
+    const tag = document.activeElement && document.activeElement.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+      e.preventDefault();
+      if (whiteboard.undo()) showToast('Último trazo deshecho');
+    }
+  });
+
+  let shareUrl = window.location.href;
+
   // 5. BOTÓN COPIAR ENLACE
   const copyBtn = document.getElementById('btn-copy-link');
   if (copyBtn) {
     copyBtn.addEventListener('click', () => {
-      navigator.clipboard.writeText(window.location.href)
-        .then(() => showToast('¡Enlace de la sala copiado al portapapeles!'))
+      navigator.clipboard.writeText(shareUrl)
+        .then(() => showToast('Enlace de la sala copiado'))
         .catch(() => showToast('Copia la URL de la barra de direcciones'));
     });
   }
@@ -95,10 +106,19 @@ document.addEventListener('DOMContentLoaded', () => {
     .then(res => res.json())
     .then(data => {
       const lanIpText = document.getElementById('lan-ip-text');
-      if (lanIpText && data.localIps && data.localIps.length > 0) {
-        const ip = data.localIps[0].address;
-        const port = data.port;
-        lanIpText.innerHTML = `Otra PC: <strong>http://${ip}:${port}/room/${roomId}</strong>`;
+      const secureUrl = data.suggestedUrl
+        ? `${data.suggestedUrl}/room/${encodeURIComponent(roomId)}`
+        : '';
+      if (secureUrl) shareUrl = secureUrl;
+      if (lanIpText && secureUrl) {
+        lanIpText.innerHTML = `Otra PC: <strong>${secureUrl}</strong>`;
+      }
+      const banner = document.getElementById('secure-banner');
+      const secureLink = document.getElementById('secure-link');
+      if (banner && secureLink && !window.isSecureContext && secureUrl) {
+        secureLink.href = secureUrl;
+        secureLink.textContent = secureUrl;
+        banner.hidden = false;
       }
     })
     .catch(() => {
@@ -161,8 +181,7 @@ function setupToolbarControls(whiteboard) {
   const btnUndo = document.getElementById('btn-undo');
   if (btnUndo) {
     btnUndo.addEventListener('click', () => {
-      whiteboard.undo();
-      showToast('Último trazo deshecho');
+      if (whiteboard.undo()) showToast('Último trazo deshecho');
     });
   }
 

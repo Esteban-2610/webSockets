@@ -1,0 +1,30 @@
+# Dependencias. Se reinstalan con pnpm install.
+node_modules/
+
+# Certificados locales del HTTPS
+.certs/
+*.pem
+*.key
+
+# Secretos
+.env
+.env.*
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# Editor
+.idea/
+*.swp
+*.swo

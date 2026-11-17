@@ -7,6 +7,7 @@
 function initBoardNamespace(boardNs) {
   // Almacenamiento en memoria para cada sala: roomId -> { strokes: [], users: Map() }
   const roomStates = new Map();
+  const skippedStrokes = new Set();
 
   function getOrCreateRoom(roomId) {
     if (!roomStates.has(roomId)) {
@@ -70,21 +71,53 @@ function initBoardNamespace(boardNs) {
     });
 
     socket.on('draw-end', (data) => {
-      if (!currentRoom) return;
-      socket.to(currentRoom).emit('draw-end', {
-        userId: socket.id
-      });
+      if (!currentRoom || !data?.stroke) return;
 
-      // Guardar el trazo completado en el historial de la sala
-      if (data && data.stroke) {
-        const room = getOrCreateRoom(currentRoom);
-        room.strokes.push(data.stroke);
-        
-        // Limitar historial a últimos 2000 trazos por seguridad de memoria
-        if (room.strokes.length > 2000) {
-          room.strokes.shift();
-        }
+      const stroke = {
+        ...data.stroke,
+        userId: socket.id
+      };
+
+      if (stroke.id && skippedStrokes.has(stroke.id)) {
+        skippedStrokes.delete(stroke.id);
+        socket.to(currentRoom).emit('draw-cancel', { userId: socket.id, strokeId: stroke.id });
+        return;
       }
+
+      const room = getOrCreateRoom(currentRoom);
+      room.strokes.push(stroke);
+      if (room.strokes.length > 2000) {
+        room.strokes.shift();
+      }
+
+      socket.to(currentRoom).emit('draw-end', {
+        userId: socket.id,
+        stroke
+      });
+    });
+
+    socket.on('draw-cancel', ({ strokeId }) => {
+      if (!currentRoom) return;
+      if (strokeId) skippedStrokes.add(strokeId);
+      socket.to(currentRoom).emit('draw-cancel', {
+        userId: socket.id,
+        strokeId
+      });
+    });
+
+    socket.on('undo', ({ strokeId }) => {
+      if (!currentRoom || !strokeId) return;
+      const room = getOrCreateRoom(currentRoom);
+      const index = room.strokes.findIndex((stroke) => stroke.id === strokeId && stroke.userId === socket.id);
+      if (index === -1) {
+        skippedStrokes.add(strokeId);
+      } else {
+        room.strokes.splice(index, 1);
+      }
+      socket.to(currentRoom).emit('undo', {
+        userId: socket.id,
+        strokeId
+      });
     });
 
     // Limpiar toda la pizarra

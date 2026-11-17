@@ -5,6 +5,8 @@
  */
 
 function initSignalingNamespace(signalingNs) {
+  const peerNames = new Map();
+
   signalingNs.on('connection', (socket) => {
     let currentRoom = null;
     let currentUsername = 'Anónimo';
@@ -14,6 +16,7 @@ function initSignalingNamespace(signalingNs) {
       if (!roomId) return;
       currentRoom = roomId;
       currentUsername = username || 'Anónimo';
+      peerNames.set(socket.id, currentUsername);
 
       socket.join(roomId);
 
@@ -24,7 +27,10 @@ function initSignalingNamespace(signalingNs) {
       if (roomClients) {
         for (const clientId of roomClients) {
           if (clientId !== socket.id) {
-            existingPeers.push(clientId);
+            existingPeers.push({
+              id: clientId,
+              username: peerNames.get(clientId) || 'Participante'
+            });
           }
         }
       }
@@ -81,6 +87,7 @@ function initSignalingNamespace(signalingNs) {
 
     // Desconexión de WebRTC
     socket.on('disconnecting', () => {
+      peerNames.delete(socket.id);
       for (const room of socket.rooms) {
         if (room !== socket.id) {
           socket.to(room).emit('peer-disconnected', {
