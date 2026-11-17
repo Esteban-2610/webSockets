@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pizarra Colaborativa & Meet | Inicio</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body class="home-body">
+  <header class="app-header">
+    <div class="logo">
+      <div class="logo-icon">🎨</div>
+      <h1>Pizarra <span>Meet</span></h1>
+    </div>
+    <div class="badge-tech">WebSockets + WebRTC + Rooms & Namespaces</div>
+  </header>
+
+  <main class="home-container">
+    <div class="hero-card">
+      <h2>Pizarra compartida en tiempo real y videollamada</h2>
+      <p class="subtitle">
+        Dibuja colaborativamente con otra computadora en tiempo real y comunícate por audio y video estilo Google Meet.
+      </p>
+
+      <form id="join-form" class="join-card">
+        <div class="input-group">
+          <label for="username">Tu Nombre:</label>
+          <input type="text" id="username" placeholder="Ej: Carlos" required autocomplete="off" maxlength="25">
+        </div>
+
+        <div class="color-picker-group">
+          <label>Tu Color de cursor:</label>
+          <div class="color-options" id="color-options">
+            <button type="button" class="color-dot active" data-color="#1a73e8" style="background:#1a73e8;"></button>
+            <button type="button" class="color-dot" data-color="#ea4335" style="background:#ea4335;"></button>
+            <button type="button" class="color-dot" data-color="#34a853" style="background:#34a853;"></button>
+            <button type="button" class="color-dot" data-color="#fbbc04" style="background:#fbbc04;"></button>
+            <button type="button" class="color-dot" data-color="#9334e8" style="background:#9334e8;"></button>
+            <button type="button" class="color-dot" data-color="#ff6d00" style="background:#ff6d00;"></button>
+          </div>
+        </div>
+
+        <div class="actions-divider">
+          <span>Elige cómo entrar</span>
+        </div>
+
+        <div class="actions-row">
+          <button type="button" id="btn-create-room" class="btn btn-primary">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Crear Nueva Sala
+          </button>
+        </div>
+
+        <div class="or-separator">o únete con un código</div>
+
+        <div class="join-input-row">
+          <input type="text" id="room-code-input" placeholder="Código de sala (ej: meet-3x8f)" autocomplete="off">
+          <button type="submit" id="btn-join-room" class="btn btn-secondary">Unirse</button>
+        </div>
+      </form>
+
+      <!-- Panel de conexión en red local (para conectar otra PC en la misma red) -->
+      <div class="network-info-card" id="network-info">
+        <div class="network-header">
+          <span class="net-icon">📡</span>
+          <strong>¿Cómo abrirlo desde otra computadora?</strong>
+        </div>
+        <p>Asegúrate de estar en la misma red Wi-Fi y abre en el navegador de la otra computadora la siguiente dirección:</p>
+        <div class="ip-list" id="ip-list">
+          <span class="loading-ips">Detectando dirección IP de tu red local...</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let selectedColor = '#1a73e8';
+
+    // Manejo de selector de colores
+    const colorDots = document.querySelectorAll('.color-dot');
+    colorDots.forEach(dot => {
+      dot.addEventListener('click', () => {
+        colorDots.forEach(d => d.classList.remove('active'));
+        dot.classList.add('active');
+        selectedColor = dot.getAttribute('data-color');
+      });
+    });
+
+    // Cargar nombre previo si existe en localStorage
+    const usernameInput = document.getElementById('username');
+    if (localStorage.getItem('board_username')) {
+      usernameInput.value = localStorage.getItem('board_username');
+    }
+
+    function generateRoomCode() {
+      const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+      let part1 = '';
+      let part2 = '';
+      for (let i = 0; i < 4; i++) part1 += chars.charAt(Math.floor(Math.random() * chars.length));
+      for (let i = 0; i < 4; i++) part2 += chars.charAt(Math.floor(Math.random() * chars.length));
+      return `meet-${part1}-${part2}`;
+    }
+
+    function enterRoom(roomId) {
+      const username = usernameInput.value.trim() || 'Participante';
+      localStorage.setItem('board_username', username);
+      localStorage.setItem('board_color', selectedColor);
+      window.location.href = `/room/${encodeURIComponent(roomId)}`;
+    }
+
+    document.getElementById('btn-create-room').addEventListener('click', () => {
+      const newRoom = generateRoomCode();
+      enterRoom(newRoom);
+    });
+
+    document.getElementById('join-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const code = document.getElementById('room-code-input').value.trim();
+      if (!code) {
+        alert('Por favor ingresa un código de sala');
+        return;
+      }
+      enterRoom(code);
+    });
+
+    // Obtener información de red local del servidor para conectar otra PC
+    fetch('/api/info')
+      .then(res => res.json())
+      .then(data => {
+        const ipContainer = document.getElementById('ip-list');
+        ipContainer.innerHTML = '';
+        if (data.localIps && data.localIps.length > 0) {
+          data.localIps.forEach(net => {
+            const row = document.createElement('div');
+            row.className = 'ip-row';
+            row.innerHTML = `
+              <span class="iface-name">${net.interface}:</span>
+              <a href="http://${net.address}:${data.port}" target="_blank" class="ip-url">http://${net.address}:${data.port}</a>
+            `;
+            ipContainer.appendChild(row);
+          });
+        } else {
+          ipContainer.innerHTML = `<code>http://localhost:${data.port}</code>`;
+        }
+      })
+      .catch(() => {
+        document.getElementById('network-info').style.display = 'none';
+      });
+  </script>
+</body>
+</html>
